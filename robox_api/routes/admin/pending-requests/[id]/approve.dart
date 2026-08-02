@@ -9,7 +9,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
 
   final db = getDb();
 
-  final result = db.select(
+  final result = await db.query(
     'SELECT name, email, password_hash FROM pending_requests WHERE id = ?',
     [id],
   );
@@ -21,24 +21,24 @@ Future<Response> onRequest(RequestContext context, String id) async {
   final row = result.first;
   const uuid = Uuid();
 
-  db
-    ..execute(
-      '''
-      INSERT INTO users (id, name, email, password_hash, role, created_at)
-      VALUES (?, ?, ?, ?, 'worker', ?)
-      ''',
-      [
-        uuid.v4(),
-        row['name'],
-        row['email'],
-        row['password_hash'],
-        DateTime.now().toIso8601String(),
-      ],
-    )
-    ..execute(
-      "UPDATE pending_requests SET status = 'approved' WHERE id = ?",
-      [id],
-    );
+  await db.execute(
+    '''
+    INSERT INTO users (id, name, email, password_hash, role, created_at)
+    VALUES (?, ?, ?, ?, 'worker', ?)
+    ''',
+    [
+      uuid.v4(),
+      row['name'],
+      row['email'],
+      row['password_hash'],
+      DateTime.now().toIso8601String(),
+    ],
+  );
+
+  await db.execute(
+    "UPDATE pending_requests SET status = 'approved' WHERE id = ?",
+    [id],
+  );
 
   return Response.json(body: {'message': 'Approved'});
 }

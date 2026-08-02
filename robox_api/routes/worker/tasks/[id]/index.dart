@@ -11,7 +11,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
 
   final db = getDb();
 
-  final assignment = db.select(
+  final assignment = await db.query(
     'SELECT * FROM task_assignments WHERE task_id = ? AND worker_id = ?',
     [id, workerId],
   );
@@ -19,7 +19,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
     return Response.json(statusCode: 403, body: {'error': 'NOT_ASSIGNED'});
   }
 
-  final task = db.select('SELECT status FROM tasks WHERE id = ?', [id]);
+  final task = await db.query('SELECT status FROM tasks WHERE id = ?', [id]);
   if (task.isEmpty) {
     return Response.json(statusCode: 404, body: {'error': 'NOT_FOUND'});
   }
@@ -30,9 +30,8 @@ Future<Response> onRequest(RequestContext context, String id) async {
     );
   }
 
-  db
-    ..execute('DELETE FROM task_assignments WHERE task_id = ?', [id])
-    ..execute('DELETE FROM tasks WHERE id = ?', [id]);
+  await db.execute('DELETE FROM task_assignments WHERE task_id = ?', [id]);
+  await db.execute('DELETE FROM tasks WHERE id = ?', [id]);
 
   return Response.json(body: {'message': 'Task removed'});
 }

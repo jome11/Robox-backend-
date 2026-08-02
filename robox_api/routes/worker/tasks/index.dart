@@ -11,7 +11,7 @@ Future<Response> onRequest(RequestContext context) async {
 
   final db = getDb();
 
-  final rows = db.select(
+  final rows = await db.query(
     '''
     SELECT tasks.* FROM tasks
     JOIN task_assignments ON task_assignments.task_id = tasks.id

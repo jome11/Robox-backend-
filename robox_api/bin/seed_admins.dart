@@ -2,7 +2,8 @@ import 'package:bcrypt/bcrypt.dart';
 import 'package:robox_api/db.dart';
 import 'package:uuid/uuid.dart';
 
-void main() {
+Future<void> main() async {
+  await initDb();
   final db = getDb();
   const uuid = Uuid();
 
@@ -20,7 +21,7 @@ void main() {
   ];
 
   for (final admin in admins) {
-    final existing = db.select(
+    final existing = await db.query(
       'SELECT id FROM users WHERE email = ?',
       [admin['email']],
     );
@@ -33,7 +34,7 @@ void main() {
 
     final hash = BCrypt.hashpw(admin['password']!, BCrypt.gensalt());
 
-    db.execute(
+    await db.execute(
       '''
       INSERT INTO users (id, name, email, password_hash, role, created_at)
       VALUES (?, ?, ?, ?, ?, ?)

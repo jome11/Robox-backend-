@@ -20,7 +20,7 @@ Future<Response> onRequest(RequestContext context) async {
 
   final hash = BCrypt.hashpw(newPassword, BCrypt.gensalt());
   final db = getDb();
-  db.execute(
+  await db.execute(
     'UPDATE users SET password_hash = ?, must_change_password = 0 WHERE id = ?',
     [hash, userId],
   );

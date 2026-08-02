@@ -1,7 +1,8 @@
 import 'package:uuid/uuid.dart';
 import '../lib/db.dart';
 
-void main() {
+Future<void> main() async {
+  await initDb();
   final db = getDb();
   const uuid = Uuid();
 
@@ -17,13 +18,13 @@ void main() {
   ];
 
   for (final item in items) {
-    final existing = db.select('SELECT id FROM stock WHERE item_name = ?', [item['name']]);
+    final existing = await db.query('SELECT id FROM stock WHERE item_name = ?', [item['name']]);
     if (existing.isNotEmpty) {
       print('Skipping ${item['name']} — already exists');
       continue;
     }
 
-    db.execute(
+    await db.execute(
       '''
       INSERT INTO stock (id, item_name, quantity, price, updated_at)
       VALUES (?, ?, ?, ?, ?)

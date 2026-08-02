@@ -24,7 +24,7 @@ Future<Response> onRequest(RequestContext context) async {
 
   final db = getDb();
 
-  final existingUser = db.select(
+  final existingUser = await db.query(
     'SELECT id FROM users WHERE email = ?',
     [email],
   );
@@ -35,7 +35,7 @@ Future<Response> onRequest(RequestContext context) async {
     );
   }
 
-  final existingPending = db.select(
+  final existingPending = await db.query(
     'SELECT id FROM pending_requests WHERE email = ?',
     [email],
   );
@@ -49,7 +49,7 @@ Future<Response> onRequest(RequestContext context) async {
   final hash = BCrypt.hashpw(password, BCrypt.gensalt());
   const uuid = Uuid();
 
-  db.execute(
+  await db.execute(
     '''
     INSERT INTO pending_requests (id, name, email, password_hash, status, requested_at)
     VALUES (?, ?, ?, ?, 'pending', ?)

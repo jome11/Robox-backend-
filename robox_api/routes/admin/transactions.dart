@@ -7,7 +7,7 @@ Future<Response> onRequest(RequestContext context) async {
   }
 
   final db = getDb();
-  final rows = db.select('SELECT * FROM transactions ORDER BY created_at DESC');
+  final rows = await db.query('SELECT * FROM transactions ORDER BY created_at DESC');
 
   final transactions = rows
       .map(
@@ -22,6 +22,7 @@ Future<Response> onRequest(RequestContext context) async {
           'description': row['description'],
           'addedBy': row['added_by_name'],
           'date': row['created_at'],
+          'edited': row['edited'] == 1,
         },
       )
       .toList();

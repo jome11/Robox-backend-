@@ -16,7 +16,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
 
   final db = getDb();
 
-  final existing = db.select('SELECT id FROM users WHERE id = ?', [id]);
+  final existing = await db.query('SELECT id FROM users WHERE id = ?', [id]);
   if (existing.isEmpty) {
     return Response.json(statusCode: 404, body: {'error': 'NOT_FOUND'});
   }
@@ -24,7 +24,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
   final newPassword = _generatePassword();
   final hash = BCrypt.hashpw(newPassword, BCrypt.gensalt());
 
-  db.execute(
+  await db.execute(
     'UPDATE users SET password_hash = ?, must_change_password = 1 WHERE id = ?',
     [hash, id],
   );

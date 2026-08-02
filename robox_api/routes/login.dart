@@ -1,11 +1,13 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:bcrypt/bcrypt.dart';
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:robox_api/db.dart';
 
-const jwtSecret = 'temporary-dev-secret-change-this-later';
+String get jwtSecret =>
+    Platform.environment['JWT_SECRET'] ?? 'temporary-dev-secret-change-this-later';
 
 Future<Response> onRequest(RequestContext context) async {
   if (context.request.method != HttpMethod.post) {
@@ -26,7 +28,7 @@ Future<Response> onRequest(RequestContext context) async {
   final db = getDb();
 
   // Check pending first — matches ACCOUNT_PENDING in your Flutter contract
-  final pending = db.select(
+  final pending = await db.query(
     'SELECT id FROM pending_requests WHERE email = ? AND status = ?',
     [email, 'pending'],
   );
@@ -38,7 +40,7 @@ Future<Response> onRequest(RequestContext context) async {
   }
 
   // Check real users — now also pulling is_active and must_change_password
-  final result = db.select(
+  final result = await db.query(
     'SELECT id, name, email, password_hash, role, is_active, must_change_password FROM users WHERE email = ?',
     [email],
   );

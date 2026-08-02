@@ -8,8 +8,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
 
   final db = getDb();
 
-  // ignore: avoid_single_cascade_in_expression_statements, cascade_invocations
-  db.execute(
+  await db.execute(
     "UPDATE pending_requests SET status = 'rejected' WHERE id = ?",
     [id],
   );

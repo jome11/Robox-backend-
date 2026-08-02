@@ -12,7 +12,7 @@ Future<Response> onRequest(RequestContext context) async {
   final userId = payload['id'] as String;
 
   final db = getDb();
-  final userRow = db.select('SELECT name FROM users WHERE id = ?', [userId]);
+  final userRow = await db.query('SELECT name FROM users WHERE id = ?', [userId]);
   final userName = userRow.isNotEmpty ? userRow.first['name'] as String : 'Unknown User';
 
   final body = jsonDecode(await context.request.body()) as Map<String, dynamic>;
@@ -32,7 +32,7 @@ Future<Response> onRequest(RequestContext context) async {
   // If this is a sale of a stock item, check availability BEFORE logging anything.
   Map<String, dynamic>? stockRow;
   if (type == 'income' && subCategory != null && quantity != null && quantity > 0) {
-    final rows = db.select('SELECT id, quantity FROM stock WHERE item_name = ?', [subCategory]);
+    final rows = await db.query('SELECT id, quantity FROM stock WHERE item_name = ?', [subCategory]);
     if (rows.isNotEmpty) {
       stockRow = rows.first;
       final available = stockRow['quantity'] as int;
@@ -49,7 +49,7 @@ Future<Response> onRequest(RequestContext context) async {
   final id = uuid.v4();
   final now = DateTime.now().toIso8601String();
 
-  db.execute(
+  await db.execute(
     '''
     INSERT INTO transactions (id, title, amount, type, category, sub_category, custom_category, description, added_by_id, added_by_name, created_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -60,7 +60,7 @@ Future<Response> onRequest(RequestContext context) async {
   // Decrement stock if this sale matched a real stock item.
   if (stockRow != null) {
     final currentQty = stockRow['quantity'] as int;
-    db.execute(
+    await db.execute(
       'UPDATE stock SET quantity = ?, updated_at = ? WHERE id = ?',
       [currentQty - quantity!, now, stockRow['id']],
     );

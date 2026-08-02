@@ -29,7 +29,7 @@ Future<Response> onRequest(RequestContext context) async {
     const uuid = Uuid();
     final taskId = uuid.v4();
 
-    db.execute(
+    await db.execute(
       '''
       INSERT INTO tasks (id, title, description, deadline, priority, status, progress, is_group_task, created_at)
       VALUES (?, ?, ?, ?, ?, 'pending', 0.0, ?, ?)
@@ -46,7 +46,7 @@ Future<Response> onRequest(RequestContext context) async {
     );
 
     for (final workerId in workerIds) {
-      db.execute(
+      await db.execute(
         'INSERT INTO task_assignments (task_id, worker_id) VALUES (?, ?)',
         [taskId, workerId],
       );
@@ -58,10 +58,11 @@ Future<Response> onRequest(RequestContext context) async {
   }
 
   if (context.request.method == HttpMethod.get) {
-    final rows = db.select('SELECT * FROM tasks ORDER BY created_at DESC');
+    final rows = await db.query('SELECT * FROM tasks ORDER BY created_at DESC');
 
-    final tasks = rows.map((row) {
-      final assignedWorkers = db.select(
+    final tasks = <Map<String, dynamic>>[];
+    for (final row in rows) {
+      final assignedWorkers = await db.query(
         '''
         SELECT users.id, users.name FROM task_assignments
         JOIN users ON users.id = task_assignments.worker_id
@@ -70,7 +71,7 @@ Future<Response> onRequest(RequestContext context) async {
         [row['id']],
       );
 
-      return {
+      tasks.add({
         'id': row['id'],
         'title': row['title'],
         'description': row['description'],
@@ -87,8 +88,8 @@ Future<Response> onRequest(RequestContext context) async {
               },
             )
             .toList(),
-      };
-    }).toList();
+      });
+    }
 
     return Response.json(body: {'tasks': tasks});
   }

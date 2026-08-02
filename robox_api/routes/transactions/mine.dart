@@ -10,7 +10,7 @@ Future<Response> onRequest(RequestContext context) async {
   final userId = payload['id'] as String;
 
   final db = getDb();
-  final rows = db.select(
+  final rows = await db.query(
     'SELECT * FROM transactions WHERE added_by_id = ? ORDER BY created_at DESC',
     [userId],
   );
@@ -19,7 +19,7 @@ Future<Response> onRequest(RequestContext context) async {
   return Response.json(statusCode: 200, body: {'transactions': transactions});
 }
 
-Map<String, dynamic> _rowToJson(dynamic row) => {
+Map<String, dynamic> _rowToJson(Map<String, dynamic> row) => {
       'id': row['id'],
       'title': row['title'],
       'amount': row['amount'],
@@ -30,4 +30,5 @@ Map<String, dynamic> _rowToJson(dynamic row) => {
       'description': row['description'],
       'addedBy': row['added_by_name'],
       'date': row['created_at'],
+      'edited': row['edited'] == 1,
     };

@@ -8,12 +8,12 @@ Future<Response> onRequest(RequestContext context, String id) async {
 
   final db = getDb();
 
-  final existing = db.select('SELECT id FROM users WHERE id = ?', [id]);
+  final existing = await db.query('SELECT id FROM users WHERE id = ?', [id]);
   if (existing.isEmpty) {
     return Response.json(statusCode: 404, body: {'error': 'NOT_FOUND'});
   }
 
-  db.execute('UPDATE users SET is_active = 0 WHERE id = ?', [id]);
+  await db.execute('UPDATE users SET is_active = 0 WHERE id = ?', [id]);
 
   return Response.json(statusCode: 200, body: {'message': 'Deactivated'});
 }

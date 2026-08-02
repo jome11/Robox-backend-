@@ -7,7 +7,7 @@ Future<Response> onRequest(RequestContext context) async {
   }
 
   final db = getDb();
-  final rows = db.select(
+  final rows = await db.query(
     '''
     SELECT id, name, email, requested_at
     FROM pending_requests

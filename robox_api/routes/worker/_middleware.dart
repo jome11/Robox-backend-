@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 
-const jwtSecret = 'temporary-dev-secret-change-this-later';
+String get jwtSecret =>
+    Platform.environment['JWT_SECRET'] ?? 'temporary-dev-secret-change-this-later';
 
 Handler middleware(Handler handler) {
   return (context) async {

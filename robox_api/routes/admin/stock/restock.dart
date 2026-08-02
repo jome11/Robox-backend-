@@ -27,18 +27,18 @@ Future<Response> onRequest(RequestContext context) async {
 
     if (itemName.isEmpty || quantity <= 0) continue;
 
-    final existing = db.select('SELECT id, quantity FROM stock WHERE item_name = ?', [itemName]);
+    final existing = await db.query('SELECT id, quantity FROM stock WHERE item_name = ?', [itemName]);
 
     if (existing.isNotEmpty) {
       final currentQty = existing.first['quantity'] as int;
-      db.execute(
+      await db.execute(
         'UPDATE stock SET quantity = ?, updated_at = ?${price != null ? ', price = ?' : ''} WHERE item_name = ?',
         price != null
             ? [currentQty + quantity, DateTime.now().toIso8601String(), price, itemName]
             : [currentQty + quantity, DateTime.now().toIso8601String(), itemName],
       );
     } else {
-      db.execute(
+      await db.execute(
         'INSERT INTO stock (id, item_name, quantity, price, updated_at) VALUES (?, ?, ?, ?, ?)',
         [uuid.v4(), itemName, quantity, price ?? 0.0, DateTime.now().toIso8601String()],
       );

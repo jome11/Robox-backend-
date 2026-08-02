@@ -7,7 +7,7 @@ Future<Response> onRequest(RequestContext context) async {
   }
 
   final db = getDb();
-  final rows = db.select('SELECT * FROM stock ORDER BY item_name');
+  final rows = await db.query('SELECT * FROM stock ORDER BY item_name');
 
   final stock = rows.map((row) => {
         'id': row['id'],

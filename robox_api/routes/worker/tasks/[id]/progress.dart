@@ -14,7 +14,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
 
   // Make sure this task is actually assigned to this worker —
   // otherwise anyone with a valid token could update any task.
-  final assignment = db.select(
+  final assignment = await db.query(
     'SELECT * FROM task_assignments WHERE task_id = ? AND worker_id = ?',
     [id, workerId],
   );
@@ -31,7 +31,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
     return Response.json(statusCode: 400, body: {'error': 'MISSING_FIELDS'});
   }
 
-  db.execute(
+  await db.execute(
     'UPDATE tasks SET progress = ?, status = ? WHERE id = ?',
     [progress, status, id],
   );

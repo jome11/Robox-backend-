@@ -8,7 +8,7 @@ Future<Response> onRequest(RequestContext context) async {
 
   final db = getDb();
 
-  final workers = db.select("SELECT id, name FROM users WHERE role = 'worker'");
+  final workers = await db.query("SELECT id, name FROM users WHERE role = 'worker'");
 
   final entries = <Map<String, dynamic>>[];
 
@@ -16,19 +16,21 @@ Future<Response> onRequest(RequestContext context) async {
     final workerId = worker['id'] as String;
     final workerName = worker['name'] as String;
 
-    final totalAssigned = db.select(
+    final totalAssignedRows = await db.query(
       'SELECT COUNT(*) as count FROM task_assignments WHERE worker_id = ?',
       [workerId],
-    ).first['count'] as int;
+    );
+    final totalAssigned = totalAssignedRows.first['count'] as int;
 
-    final completed = db.select(
+    final completedRows = await db.query(
       '''
       SELECT COUNT(*) as count FROM task_assignments
       JOIN tasks ON tasks.id = task_assignments.task_id
       WHERE task_assignments.worker_id = ? AND tasks.status = 'completed'
       ''',
       [workerId],
-    ).first['count'] as int;
+    );
+    final completed = completedRows.first['count'] as int;
 
     final efficiency = totalAssigned == 0 ? 0.0 : (completed / totalAssigned) * 100;
 
