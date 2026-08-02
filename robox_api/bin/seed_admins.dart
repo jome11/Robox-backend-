@@ -1,14 +1,22 @@
 import 'package:bcrypt/bcrypt.dart';
+import 'package:robox_api/db.dart';
 import 'package:uuid/uuid.dart';
-import '../lib/db.dart';
 
 void main() {
   final db = getDb();
   const uuid = Uuid();
 
   final admins = [
-    {'name': 'Admin One', 'email': 'admin1@robox.ai', 'password': 'ChangeMe123!'},
-    {'name': 'Admin Two', 'email': 'admin2@robox.ai', 'password': 'ChangeMe456!'},
+    {
+      'name': 'Admin One',
+      'email': 'admin1@robox.ai',
+      'password': 'ChangeMe123!',
+    },
+    {
+      'name': 'Admin Two',
+      'email': 'admin2@robox.ai',
+      'password': 'ChangeMe456!',
+    },
   ];
 
   for (final admin in admins) {
@@ -18,6 +26,7 @@ void main() {
     );
 
     if (existing.isNotEmpty) {
+      // ignore: avoid_print
       print('Skipping ${admin['email']} — already exists');
       continue;
     }
@@ -39,8 +48,10 @@ void main() {
       ],
     );
 
+    // ignore: avoid_print
     print('Created admin: ${admin['email']}');
   }
 
+  // ignore: avoid_print
   print('Done.');
 }

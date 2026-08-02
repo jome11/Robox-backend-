@@ -1,20 +1,23 @@
 import 'dart:convert';
+
 import 'package:dart_frog/dart_frog.dart';
+import 'package:robox_api/db.dart';
 import 'package:uuid/uuid.dart';
-import '../../../lib/db.dart';
 
 Future<Response> onRequest(RequestContext context) async {
   final db = getDb();
 
   if (context.request.method == HttpMethod.post) {
-    final body = jsonDecode(await context.request.body()) as Map<String, dynamic>;
+    final body =
+        jsonDecode(await context.request.body()) as Map<String, dynamic>;
 
     final title = (body['title'] as String?)?.trim() ?? '';
     final description = (body['description'] as String?)?.trim() ?? '';
     final deadline = body['deadline'] as String? ?? '';
     final priority = body['priority'] as String? ?? 'medium';
     final isGroupTask = body['isGroupTask'] as bool? ?? false;
-    final workerIds = (body['workerIds'] as List<dynamic>?)?.cast<String>() ?? [];
+    final workerIds =
+        (body['workerIds'] as List<dynamic>?)?.cast<String>() ?? [];
 
     if (title.isEmpty || deadline.isEmpty || workerIds.isEmpty) {
       return Response.json(
@@ -37,7 +40,7 @@ Future<Response> onRequest(RequestContext context) async {
         description,
         deadline,
         priority,
-        isGroupTask ? 1 : 0,
+        if (isGroupTask) 1 else 0,
         DateTime.now().toIso8601String(),
       ],
     );
@@ -50,7 +53,6 @@ Future<Response> onRequest(RequestContext context) async {
     }
 
     return Response.json(
-      statusCode: 200,
       body: {'message': 'Task created', 'taskId': taskId},
     );
   }
@@ -77,14 +79,18 @@ Future<Response> onRequest(RequestContext context) async {
         'status': row['status'],
         'progress': row['progress'],
         'isGroupTask': row['is_group_task'] == 1,
-        'assignedWorkers': assignedWorkers.map((w) => {
-          'id': w['id'],
-          'name': w['name'],
-        }).toList(),
+        'assignedWorkers': assignedWorkers
+            .map(
+              (w) => {
+                'id': w['id'],
+                'name': w['name'],
+              },
+            )
+            .toList(),
       };
     }).toList();
 
-    return Response.json(statusCode: 200, body: {'tasks': tasks});
+    return Response.json(body: {'tasks': tasks});
   }
 
   return Response(statusCode: 405, body: 'Method not allowed');

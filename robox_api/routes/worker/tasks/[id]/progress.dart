@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:dart_frog/dart_frog.dart';
-import '../../../../lib/db.dart';
+import 'package:robox_api/db.dart';
 
 Future<Response> onRequest(RequestContext context, String id) async {
   if (context.request.method != HttpMethod.patch) {
@@ -36,5 +36,5 @@ Future<Response> onRequest(RequestContext context, String id) async {
     [progress, status, id],
   );
 
-  return Response.json(statusCode: 200, body: {'message': 'Updated'});
+  return Response.json(body: {'message': 'Updated'});
 }

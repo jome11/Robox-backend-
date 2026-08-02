@@ -1,5 +1,5 @@
 import 'package:dart_frog/dart_frog.dart';
-import '../../../lib/db.dart';
+import 'package:robox_api/db.dart';
 
 Future<Response> onRequest(RequestContext context) async {
   if (context.request.method != HttpMethod.get) {
@@ -8,15 +8,23 @@ Future<Response> onRequest(RequestContext context) async {
 
   final db = getDb();
   final rows = db.select(
-    "SELECT id, name, email, requested_at FROM pending_requests WHERE status = 'pending'",
+    '''
+    SELECT id, name, email, requested_at
+    FROM pending_requests
+    WHERE status = 'pending'
+    ''',
   );
 
-  final requests = rows.map((row) => {
-    'id': row['id'],
-    'name': row['name'],
-    'email': row['email'],
-    'requestedDate': row['requested_at'],
-  }).toList();
+  final requests = rows
+      .map(
+        (row) => {
+          'id': row['id'],
+          'name': row['name'],
+          'email': row['email'],
+          'requestedDate': row['requested_at'],
+        },
+      )
+      .toList();
 
-  return Response.json(statusCode: 200, body: requests);
+  return Response.json(body: requests);
 }

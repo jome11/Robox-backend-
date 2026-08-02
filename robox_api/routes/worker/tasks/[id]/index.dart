@@ -1,5 +1,5 @@
 import 'package:dart_frog/dart_frog.dart';
-import '../../../../lib/db.dart';
+import 'package:robox_api/db.dart';
 
 Future<Response> onRequest(RequestContext context, String id) async {
   if (context.request.method != HttpMethod.delete) {
@@ -24,11 +24,15 @@ Future<Response> onRequest(RequestContext context, String id) async {
     return Response.json(statusCode: 404, body: {'error': 'NOT_FOUND'});
   }
   if (task.first['status'] != 'completed') {
-    return Response.json(statusCode: 400, body: {'error': 'TASK_NOT_COMPLETED'});
+    return Response.json(
+      statusCode: 400,
+      body: {'error': 'TASK_NOT_COMPLETED'},
+    );
   }
 
-  db.execute('DELETE FROM task_assignments WHERE task_id = ?', [id]);
-  db.execute('DELETE FROM tasks WHERE id = ?', [id]);
+  db
+    ..execute('DELETE FROM task_assignments WHERE task_id = ?', [id])
+    ..execute('DELETE FROM tasks WHERE id = ?', [id]);
 
-  return Response.json(statusCode: 200, body: {'message': 'Task removed'});
+  return Response.json(body: {'message': 'Task removed'});
 }

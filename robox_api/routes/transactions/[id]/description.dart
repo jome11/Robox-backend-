@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:dart_frog/dart_frog.dart';
-import '../../../lib/db.dart';
+import 'package:robox_api/db.dart';
 
 Future<Response> onRequest(RequestContext context, String id) async {
   if (context.request.method != HttpMethod.patch) {
@@ -12,7 +12,9 @@ Future<Response> onRequest(RequestContext context, String id) async {
   final role = payload['role'] as String;
 
   final db = getDb();
-  final rows = db.select('SELECT added_by_id FROM transactions WHERE id = ?', [id]);
+  final rows = db.select('SELECT added_by_id FROM transactions WHERE id = ?', [
+    id,
+  ]);
   if (rows.isEmpty) {
     return Response.json(statusCode: 404, body: {'error': 'NOT_FOUND'});
   }
@@ -24,7 +26,10 @@ Future<Response> onRequest(RequestContext context, String id) async {
   final body = jsonDecode(await context.request.body()) as Map<String, dynamic>;
   final description = body['description'] as String? ?? '';
 
-  db.execute('UPDATE transactions SET description = ? WHERE id = ?', [description, id]);
+  db.execute('UPDATE transactions SET description = ? WHERE id = ?', [
+    description,
+    id,
+  ]);
 
-  return Response.json(statusCode: 200, body: {'message': 'Updated'});
+  return Response.json(body: {'message': 'Updated'});
 }

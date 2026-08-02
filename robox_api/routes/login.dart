@@ -1,8 +1,9 @@
 import 'dart:convert';
-import 'package:dart_frog/dart_frog.dart';
+
 import 'package:bcrypt/bcrypt.dart';
+import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
-import '../lib/db.dart';
+import 'package:robox_api/db.dart';
 
 const jwtSecret = 'temporary-dev-secret-change-this-later';
 
@@ -36,9 +37,9 @@ Future<Response> onRequest(RequestContext context) async {
     );
   }
 
-  // Check real users
+  // Check real users — now also pulling is_active and must_change_password
   final result = db.select(
-    'SELECT id, name, email, password_hash, role FROM users WHERE email = ?',
+    'SELECT id, name, email, password_hash, role, is_active, must_change_password FROM users WHERE email = ?',
     [email],
   );
 
@@ -50,6 +51,11 @@ Future<Response> onRequest(RequestContext context) async {
   }
 
   final row = result.first;
+
+  if ((row['is_active'] as int) == 0) {
+    return Response.json(statusCode: 403, body: {'error': 'ACCOUNT_DEACTIVATED'});
+  }
+
   final storedHash = row['password_hash'] as String;
 
   final passwordMatches = BCrypt.checkpw(password, storedHash);
@@ -64,10 +70,12 @@ Future<Response> onRequest(RequestContext context) async {
     'id': row['id'],
     'role': row['role'],
   });
-  final token = jwt.sign(SecretKey(jwtSecret), expiresIn: const Duration(hours: 2));
+  final token = jwt.sign(
+    SecretKey(jwtSecret),
+    expiresIn: const Duration(hours: 2),
+  );
 
   return Response.json(
-    statusCode: 200,
     body: {
       'token': token,
       'user': {
@@ -75,6 +83,7 @@ Future<Response> onRequest(RequestContext context) async {
         'name': row['name'],
         'email': row['email'],
         'role': row['role'],
+        'mustChangePassword': (row['must_change_password'] as int) == 1,
       },
     },
   );

@@ -1,8 +1,9 @@
 import 'dart:convert';
-import 'package:dart_frog/dart_frog.dart';
+
 import 'package:bcrypt/bcrypt.dart';
+import 'package:dart_frog/dart_frog.dart';
+import 'package:robox_api/db.dart';
 import 'package:uuid/uuid.dart';
-import '../lib/db.dart';
 
 Future<Response> onRequest(RequestContext context) async {
   if (context.request.method != HttpMethod.post) {
@@ -57,7 +58,6 @@ Future<Response> onRequest(RequestContext context) async {
   );
 
   return Response.json(
-    statusCode: 200,
     body: {'message': 'Signup request submitted'},
   );
 }
