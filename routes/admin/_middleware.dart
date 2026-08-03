@@ -17,7 +17,7 @@ Handler middleware(Handler handler) {
       );
     }
 
-    final token = authHeader.substring(7); // strip "Bearer "
+    final token = authHeader.substring(7);
 
     try {
       final jwt = JWT.verify(token, SecretKey(jwtSecret));
@@ -30,7 +30,6 @@ Handler middleware(Handler handler) {
         );
       }
 
-      // Token is valid and belongs to an admin — continue to the route
       return handler(context);
     } on JWTExpiredException {
       return Response.json(statusCode: 401, body: {'error': 'TOKEN_EXPIRED'});

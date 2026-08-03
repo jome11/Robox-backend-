@@ -3,16 +3,6 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
-/// Thin HTTP client for a Turso (libSQL) database, using Turso's
-/// "SQL over HTTP" pipeline endpoint (`/v2/pipeline`).
-///
-/// We deliberately do NOT use the `sqlite3` package or any native
-/// libSQL binding here. Render's containers are stateless/ephemeral —
-/// a local `robox.db` file would be wiped on every deploy/restart —
-/// and native libSQL bindings add platform-specific binaries that are
-/// painful to get working reliably inside a Docker build. Plain HTTP
-/// + JSON has no native dependencies at all, so it "just works" on any
-/// host, including Render's free tier.
 class TursoClient {
   TursoClient._(this._pipelineUrl, this._authToken);
 
@@ -21,8 +11,6 @@ class TursoClient {
 
   static TursoClient? _instance;
 
-  /// Reads TURSO_DATABASE_URL / TURSO_AUTH_TOKEN from the environment
-  /// and builds a singleton client. Call this once at startup.
   factory TursoClient.fromEnv() {
     if (_instance != null) return _instance!;
 
@@ -42,8 +30,6 @@ class TursoClient {
       );
     }
 
-    // Turso gives you a "libsql://xxx-yyy.turso.io" URL. The HTTP API
-    // lives at the same host over https, at /v2/pipeline.
     var httpUrl = rawUrl.trim();
     if (httpUrl.startsWith('libsql://')) {
       httpUrl = httpUrl.replaceFirst('libsql://', 'https://');
@@ -56,9 +42,6 @@ class TursoClient {
     return _instance!;
   }
 
-  /// Runs a single SQL statement and returns its rows as a list of
-  /// column-name -> value maps (native Dart types: String, int,
-  /// double, null, or List<int> for blobs).
   Future<List<Map<String, dynamic>>> query(
     String sql, [
     List<Object?> args = const [],
@@ -67,8 +50,6 @@ class TursoClient {
     return result;
   }
 
-  /// Runs a single SQL statement that doesn't return rows
-  /// (INSERT/UPDATE/DELETE/CREATE TABLE/etc).
   Future<void> execute(
     String sql, [
     List<Object?> args = const [],
@@ -173,9 +154,6 @@ TursoClient getDb() {
   return _client!;
 }
 
-/// Creates all tables if they don't exist yet, and runs the same
-/// additive column migrations the old sqlite3 version ran. Call this
-/// once when the server boots (see bin/server.dart).
 Future<void> initDb() async {
   final db = getDb();
 
@@ -251,13 +229,10 @@ Future<void> initDb() async {
     );
   ''');
 
-  // Additive migrations. Turso/SQLite errors if the column already
-  // exists, so each one is wrapped individually and ignored on failure.
   Future<void> tryAlter(String sql) async {
     try {
       await db.execute(sql);
     } catch (_) {
-      // Column already exists — safe to ignore.
     }
   }
 

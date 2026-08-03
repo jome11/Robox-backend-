@@ -42,7 +42,6 @@ Future<Response> onRequest(RequestContext context) async {
     });
   }
 
-  // Rank by tasks completed, descending.
   entries.sort((a, b) => (b['tasksCompleted'] as int).compareTo(a['tasksCompleted'] as int));
   for (var i = 0; i < entries.length; i++) {
     entries[i]['rank'] = i + 1;
