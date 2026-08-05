@@ -74,7 +74,7 @@ Future<Response> onRequest(RequestContext context) async {
   });
   final token = jwt.sign(
     SecretKey(jwtSecret),
-    expiresIn: const Duration(hours: 2),
+    expiresIn: const Duration(hours: 24),
   );
 
   return Response.json(
