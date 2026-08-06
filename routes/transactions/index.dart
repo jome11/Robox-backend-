@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:dart_frog/dart_frog.dart';
 import 'package:uuid/uuid.dart';
 import '../../lib/db.dart';
+import '../../lib/fcm_service.dart';
 
 Future<Response> onRequest(RequestContext context) async {
   if (context.request.method != HttpMethod.post) {
@@ -65,6 +66,20 @@ Future<Response> onRequest(RequestContext context) async {
       [currentQty - quantity!, now, stockRow['id']],
     );
   }
+
+  // Notify admins (excluding whoever just logged this) with the transaction detail.
+  final adminTokens = await db.query(
+    "SELECT fcm_token FROM users WHERE role = 'admin' AND fcm_token IS NOT NULL AND id != ?",
+    [userId],
+  );
+  final tokens = adminTokens.map((r) => r['fcm_token'] as String).toList();
+
+  await FcmService.sendToTokens(
+    tokens,
+    title: type == 'income' ? 'New Income Logged' : 'New Expense Logged',
+    body: '$userName logged ETB ${amount.toStringAsFixed(2)} — $title',
+    data: {'type': 'transaction', 'transactionId': id},
+  );
 
   return Response.json(statusCode: 200, body: {'message': 'Transaction logged', 'id': id});
 }

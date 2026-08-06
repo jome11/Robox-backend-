@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dart_frog/dart_frog.dart';
 import 'package:robox_api/db.dart';
+import 'package:robox_api/fcm_service.dart';
 import 'package:uuid/uuid.dart';
 
 Future<Response> onRequest(RequestContext context) async {
@@ -49,6 +50,23 @@ Future<Response> onRequest(RequestContext context) async {
       await db.execute(
         'INSERT INTO task_assignments (task_id, worker_id) VALUES (?, ?)',
         [taskId, workerId],
+      );
+    }
+
+    // Notify each assigned worker.
+    if (workerIds.isNotEmpty) {
+      final placeholders = List.filled(workerIds.length, '?').join(', ');
+      final workerTokens = await db.query(
+        'SELECT fcm_token FROM users WHERE id IN ($placeholders) AND fcm_token IS NOT NULL',
+        workerIds,
+      );
+      final tokens = workerTokens.map((r) => r['fcm_token'] as String).toList();
+
+      await FcmService.sendToTokens(
+        tokens,
+        title: 'New Task Assigned',
+        body: '$title — due $deadline',
+        data: {'type': 'task', 'taskId': taskId},
       );
     }
 

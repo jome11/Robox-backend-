@@ -154,6 +154,14 @@ TursoClient getDb() {
   return _client!;
 }
 
+Future<void> _tryAlter(String sql) async {
+  try {
+    await getDb().execute(sql);
+  } catch (_) {
+    // Column already exists — safe to ignore.
+  }
+}
+
 Future<void> initDb() async {
   final db = getDb();
 
@@ -229,20 +237,16 @@ Future<void> initDb() async {
     );
   ''');
 
-  Future<void> tryAlter(String sql) async {
-    try {
-      await db.execute(sql);
-    } catch (_) {
-    }
-  }
-
-  await tryAlter(
+  await _tryAlter(
     'ALTER TABLE users ADD COLUMN must_change_password INTEGER NOT NULL DEFAULT 0;',
   );
-  await tryAlter(
+  await _tryAlter(
     'ALTER TABLE users ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1;',
   );
-  await tryAlter(
+  await _tryAlter(
     'ALTER TABLE transactions ADD COLUMN edited INTEGER NOT NULL DEFAULT 0;',
+  );
+  await _tryAlter(
+    'ALTER TABLE users ADD COLUMN fcm_token TEXT;',
   );
 }
